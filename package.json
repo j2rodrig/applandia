@@ -3,9 +3,9 @@
   "version": "0.0.2",
   "description": "A startup-simulation game",
   "scripts": {
-    "start": "node gameserver.js"
+    "start": "node index.js"
   },
-  "main": "gameserver.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/j2rodrig/applandia.git"

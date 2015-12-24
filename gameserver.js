@@ -1,5 +1,5 @@
 var port = 1080;
-var serverUrl = "127.0.0.1";
+var serverUrl = process.env.PORT || "127.0.0.1";
 var counter = 0;
 
 var http = require("http");

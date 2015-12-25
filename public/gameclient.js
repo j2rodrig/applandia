@@ -2,10 +2,17 @@ window.onload = function() {
   
   var socket = io();
   
-  socket.on("handshake", function(data) {
-    console.log("got handshake: " + data);
-    socket.emit("handshake2", data);
-  });
+  //socket.on("handshake", function(data) {
+  //  console.log("got handshake: " + data);
+  //  socket.emit("handshake2", data);
+  //});
+  
+  var model = modelspawn(buildUI);  // spawn a model that rebuilds the UI view when updated
+  
+  //socket.on("model", function(m) {
+  //  model = m;
+  //  buildUI(model);
+  //});
 
   var game = new Phaser.Game(600, 600, Phaser.AUTO, '', { preload: preload, create: create });
 
@@ -16,14 +23,8 @@ window.onload = function() {
   }
   
   // Default model object. TODO: replace with server/db integration
-  function modelDefault() {
-    return {
-      sectorAlignment: [
-        { name: "Sector 1", inBusinessPlan: false, inProductDev: false, planDevPercent: 0.0, productDevPercent: 0.0 },
-        { name: "Sector 2", inBusinessPlan: false, inProductDev: false, planDevPercent: 0.0, productDevPercent: 0.0 },
-      ]
-    }
-  }
+  //function modelDefault() {
+    //}
   
   function freshRenderState() {
     return {
@@ -34,11 +35,13 @@ window.onload = function() {
   }
 
   function create() {
-    buildAccordingTo(modelDefault())
-    //buildAccordingTo('ButtonBinarySliderOff')
+    //console.log("objectPath = " + objectPath);
+    //console.log("objectPath.get = " + objectPath.get);
+    buildUI();
+    //buildUI('ButtonBinarySliderOff')
   }
   
-  function buildAccordingTo(model) {
+  function buildUI() {
     game.world.destroy(true, true)
     var renderState = freshRenderState()
     
@@ -54,12 +57,12 @@ window.onload = function() {
     // TODO: header
     
     // TODO: choose which body to render    
-    addSectorPivots(model, renderState)
+    addSectorPivots(renderState)
     
     //game.add.button(30, 20, model, actionOnClick, this, 0, 0, 0);
   }
   
-  function addSectorPivots(model, renderState) {
+  function addSectorPivots(renderState) {
     var addColumnHeader = function() {
       var headerText1 = game.add.text(0, 0, "Sector", renderState.columnHeaderStyle);
       headerText1.setTextBounds(renderState.x, renderState.y + 3, 150, 50);
@@ -67,7 +70,7 @@ window.onload = function() {
 
       var headerText2 = game.add.text(0, 0, "In Plan", renderState.columnHeaderStyle);
       headerText2.setTextBounds(renderState.x + 20, renderState.y + 3, 100, 50);
-      renderState.x += 100;
+      renderState.x += 120;
 
       var headerText2 = game.add.text(0, 0, "In Dev", renderState.columnHeaderStyle);
       headerText2.setTextBounds(renderState.x + 20, renderState.y + 3, 100, 50);
@@ -75,16 +78,19 @@ window.onload = function() {
       renderState.y += 50;
       renderState.x = renderState.leftMargin;
     }
-    var addSector = function(which) {
-      var sector = objectPath.get(model, ["sectorAlignment", which]); //model.sectorAlignment[which];
+    var addSector = function(i) {
+      //var sector = objectPath.get(model, ["sectorAlignment", which]); //model.sectorAlignment[which];
 
-      var text = game.add.text(0, 0, sector.name, renderState.textStyle);
+      var text = game.add.text(0, 0, model.get(["sector", i, "name"]), renderState.textStyle);
       text.setTextBounds(renderState.x, renderState.y + 3, 150, 50);
       renderState.x += 150;
 
-      var updateInBusinessPlan = function() {
+      addOnOffSlider(model, ["sector", i, "inBusinessPlan"], renderState.x, renderState.y);
+      renderState.x += 120;
+
+      /*var updateInBusinessPlan = function() {
         sector.inBusinessPlan = !sector.inBusinessPlan;
-        buildAccordingTo(model);
+        buildUI();
       }
       var inBusinessPlanImageKey = sector.inBusinessPlan ? 'ButtonBinarySliderOn' : 'ButtonBinarySliderOff';
       var enableInBusinessPlan = game.add.button(renderState.x, renderState.y, inBusinessPlanImageKey, updateInBusinessPlan, this, 0, 0, 0);
@@ -92,22 +98,30 @@ window.onload = function() {
 
       var updateInProductDev = function() {
         sector.inProductDev = !sector.inProductDev;
-        buildAccordingTo(model);
+        buildUI();
       }
       var inProductDevImageKey = sector.inProductDev ? 'ButtonBinarySliderOn' : 'ButtonBinarySliderOff';
       var enableInProductDev = game.add.button(renderState.x, renderState.y, inProductDevImageKey, updateInProductDev, this, 0, 0, 0);
+      */
 
-      renderState.y += 50;
+      addOnOffSlider(model, ["sector", i, "inProductDev"], renderState.x, renderState.y);
       renderState.x = renderState.leftMargin;
+      renderState.y += 50;
     }
+    function addOnOffSlider(model, path, x, y) {
+      var imagekey = model.get(path) ? 'ButtonBinarySliderOn' : 'ButtonBinarySliderOff';
+      game.add.button(x, y, imagekey, function() { model.toggle(path) }, this, 0, 0, 0);
+    }
+
+    // Draw UI.
     addColumnHeader();
-    for(i = 0; i < model.sectorAlignment.length; i++) {
+    for(i = 0; i < model.get(["sector"]).length; i++) {
       addSector(i);
     }
   }
 
   //function actionOnClick() {
-  //  buildAccordingTo('ButtonBinarySliderOn')
+  //  buildUI('ButtonBinarySliderOn')
     //}
 
 };
